@@ -1,4 +1,4 @@
-# Contributing to sorosentinel-contract
+# Contributing to sentinel-contract
 
 ## Setup
 ```
@@ -13,5 +13,5 @@ cargo clippy --all-targets
 - Update README.md if you changed public behavior.
 
 ## Related repos
-- sorosentinel-backend — scores addresses and calls this contract
-- sorosentinel-frontend — dashboard reading data derived from this contract
+- sentinel-backend — scores addresses and calls this contract
+- sentinel-frontend — dashboard reading data derived from this contract

@@ -12,10 +12,10 @@ pub enum DataKey {
 const FLAG_EVENT: Symbol = symbol_short!("flagged");
 
 #[contract]
-pub struct SoroSentinel;
+pub struct StellarSentinel;
 
 #[contractimpl]
-impl SoroSentinel {
+impl StellarSentinel {
     /// One-time setup. Sets the contract admin and a default risk threshold.
     pub fn initialize(env: Env, admin: Address, default_threshold: u32) {
         if env.storage().instance().has(&DataKey::Admin) {
@@ -53,7 +53,8 @@ impl SoroSentinel {
     }
 
     /// Called by an authorized agent when it flags a transaction/address as
-    /// anomalous. Emits an event; does not yet persist a history of flags.
+    /// anomalous. Scores below the configured threshold are rejected. Emits
+    /// an event; does not yet persist a history of flags.
     /// TODO(#issue): persist flags so off-chain services can query history.
     pub fn flag_anomaly(env: Env, agent: Address, subject: Address, score: u32) {
         agent.require_auth();
@@ -64,6 +65,14 @@ impl SoroSentinel {
             .unwrap_or(false);
         if !is_agent {
             panic!("not an authorized agent");
+        }
+        let threshold: u32 = env
+            .storage()
+            .instance()
+            .get(&DataKey::RiskThreshold)
+            .expect("not initialized");
+        if score < threshold {
+            panic!("score below risk threshold");
         }
         env.events()
             .publish((FLAG_EVENT, agent, subject), score);
