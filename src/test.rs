@@ -1,6 +1,6 @@
 #![cfg(test)]
 use super::*;
-use soroban_sdk::testutils::Address as _;
+use soroban_sdk::testutils::{storage::Persistent as _, Address as _, Ledger as _};
 
 #[test]
 fn test_initialize_and_threshold() {
@@ -152,4 +152,29 @@ fn agent_cannot_submit_score_above_100() {
     client.initialize(&admin, &75);
     client.authorize_agent(&admin, &agent);
     client.flag_anomaly(&agent, &subject, &101);
+}
+
+#[test]
+fn reading_latest_flag_does_not_renew_its_persistent_ttl() {
+    let env = Env::default();
+    let contract_id = env.register(StellarSentinel, ());
+    let client = StellarSentinelClient::new(&env, &contract_id);
+    let admin = Address::generate(&env);
+    let agent = Address::generate(&env);
+    let subject = Address::generate(&env);
+    env.mock_all_auths();
+
+    client.initialize(&admin, &70);
+    client.authorize_agent(&admin, &agent);
+    client.flag_anomaly(&agent, &subject, &90);
+
+    let key = DataKey::LatestFlag(subject.clone());
+    let near_expiry = env.ledger().sequence() + PERSISTENT_TTL_BUMP - PERSISTENT_TTL_THRESHOLD / 2;
+    env.ledger().set_sequence_number(near_expiry);
+    let ttl_before = env.as_contract(&contract_id, || env.storage().persistent().get_ttl(&key));
+    assert_eq!(ttl_before, PERSISTENT_TTL_THRESHOLD / 2);
+
+    assert_eq!(client.get_latest_flag(&subject).unwrap().score, 90);
+    let ttl_after = env.as_contract(&contract_id, || env.storage().persistent().get_ttl(&key));
+    assert_eq!(ttl_after, ttl_before);
 }

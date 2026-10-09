@@ -135,19 +135,11 @@ impl StellarSentinel {
     }
 
     /// Return the latest recorded flag for a subject, if one exists.
-    /// Persistent entries are extended when read, subject to the network's
-    /// maximum TTL policy.
+    /// Persistent entries expire according to their write-time TTL; reads do
+    /// not renew retention.
     pub fn get_latest_flag(env: Env, subject: Address) -> Option<FlagRecord> {
         let key = DataKey::LatestFlag(subject);
-        let record = env.storage().persistent().get(&key);
-        if record.is_some() {
-            env.storage().persistent().extend_ttl(
-                &key,
-                PERSISTENT_TTL_THRESHOLD,
-                PERSISTENT_TTL_BUMP,
-            );
-        }
-        record
+        env.storage().persistent().get(&key)
     }
 
     pub fn get_threshold(env: Env) -> u32 {
