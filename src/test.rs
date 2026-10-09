@@ -1,7 +1,7 @@
 #![cfg(test)]
 use super::*;
 use soroban_sdk::testutils::{storage::Persistent as _, Address as _, Events as _, Ledger as _, MockAuth, MockAuthInvoke};
-use soroban_sdk::{Symbol, TryFromVal};
+use soroban_sdk::{vec, Symbol, TryFromVal};
 use soroban_sdk::IntoVal;
 
 #[test]

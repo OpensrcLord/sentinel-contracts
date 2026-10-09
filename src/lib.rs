@@ -272,7 +272,7 @@ impl StellarSentinel {
     /// Submit up to MAX_FLAG_BATCH risk flags in one authorized transaction.
     pub fn flag_anomalies(env: Env, agent: Address, submissions: Vec<FlagSubmission>) {
         agent.require_auth();
-        if submissions.len() == 0 || submissions.len() > MAX_FLAG_BATCH {
+        if submissions.is_empty() || submissions.len() > MAX_FLAG_BATCH {
             panic!("flag batch size must be between 1 and 16");
         }
         let is_agent: bool = env
